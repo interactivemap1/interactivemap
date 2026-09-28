@@ -145,6 +145,8 @@
   .typing span:nth-child(2){animation-delay:.15s;}
   .typing span:nth-child(3){animation-delay:.3s;}
   @keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+  .msg.typing-cursor::after{content:"";display:inline-block;width:2px;height:1em;margin-inline-start:3px;background:var(--ink);vertical-align:text-bottom;animation:caret .8s steps(1) infinite;}
+  @keyframes caret{0%,50%{opacity:1}50.01%,100%{opacity:0}}
   @media (prefers-reduced-motion: reduce){.typing span{animation:none;opacity:.7;}}
 
   form{
@@ -323,6 +325,26 @@ function addBotHTML(html){
   messagesEl.appendChild(div);
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
+function typeBotHTML(html, speed){
+  speed = speed || 30;
+  const div = document.createElement('div');
+  div.className = 'msg bot typing-cursor';
+  messagesEl.appendChild(div);
+  const tokens = html.match(/<[^>]+>|[\s\S]/gu) || [];
+  const myToken = sendToken;
+  let i = 0, out = '';
+  const timer = setInterval(() => {
+    if(!div.isConnected || myToken !== sendToken){ clearInterval(timer); return; }
+    let tok;
+    do { tok = tokens[i++]; out += tok; } while(i < tokens.length && tok.length > 1 && tok[0] === '<');
+    div.innerHTML = out;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    if(i >= tokens.length){
+      clearInterval(timer);
+      div.classList.remove('typing-cursor');
+    }
+  }, speed);
+}
 function addUser(text){
   const div = document.createElement('div');
   div.className = 'msg user';
@@ -481,12 +503,13 @@ DEPARTMENTS.forEach(d => {
   chipsEl.appendChild(b);
 });
 
-addBotHTML(
-  "أهلاً وسهلاً بك 👋<br><br>" +
+typeBotHTML(
+  "👋 أهلاً وسهلاً بك<br>" +
   "أنا <strong>GhatBot</strong>،<br>" +
-  "المساعد الذكي لبلدية سلفيت.<br><br>" +
+  "المساعد الذكي لبلدية سلفيت.<br>" +
   "يمكنني مساعدتك في الاستفسار عن<br>" +
-  "خدمات البلدية."
+  "خدمات البلدية.<br>" +
+  "⬆️ ابدأ باختيار القسم  من الأعلى"
 );
 </script>
 </body>
